@@ -1,4 +1,4 @@
 # cryptobot-webhook
 Bot webhook para pagamentos automáticos”
-414363:AAkmppGVkcaQ02x8wpY9ChKe3DhRT7pAtdA
-8158617725:AAEvVMZPZ-5nT3GGg8ESILaGgSqvhuu4oYc
+8139934655:AAFi9il4_6lBg318YJ_q4cP7dqbmdurbmf0
+414389:AAXRpMW5Rgn8PEF9L6cbGhtJBnGWGcrFHxn
