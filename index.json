@@ -1,0 +1,88 @@
+const express = require('express');
+const axios = require('axios');
+const TelegramBot = require('node-telegram-bot-api');
+
+const app = express();
+app.use(express.json());
+
+const TOKEN = '8050991119:AAFxJNQhIZCtmjCYx9AjB_CKGds_07PeWFM'; // seu token do BotFather
+const CRYPTOBOT_APP_ID = '416539'; // seu App ID do CryptoBot
+const VIP_CHANNEL_ID = '-1002626370198';
+const PRIDE_CHANNEL_ID = '-1002739308190';
+
+const bot = new TelegramBot(TOKEN);
+
+// 🔁 Endpoint do webhook
+app.post('/webhook', (req, res) => {
+  const update = req.body;
+  bot.processUpdate(update);
+  res.sendStatus(200);
+});
+
+// 🎯 Comando inicial
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🔥 Plano VIP', callback_data: 'vip' }],
+        [{ text: '⚡ Plano Pride', callback_data: 'pride' }]
+      ]
+    }
+  };
+
+  bot.sendMessage(chatId, 'Bem-vindo! Escolha seu plano abaixo:', options);
+});
+
+// 🎯 Resposta aos botões
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const userId = query.from.id;
+  const plano = query.data;
+
+  let amount, desc;
+  if (plano === 'vip') {
+    amount = 10; // 10 USDT
+    desc = 'Plano VIP';
+  } else {
+    amount = 15; // 15 USDT
+    desc = 'Plano Pride';
+  }
+
+  try {
+    const response = await axios.post(
+      'https://pay.crypt.bot/api/createInvoice',
+      {
+        asset: 'USDT',
+        amount,
+        description: desc,
+        hidden_message: 'Após o pagamento você será adicionado ao canal.',
+        paid_btn_name: 'url',
+        paid_btn_url: 'https://t.me/Whoainz_bot'
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer <SEU-TOKEN-DO-CRYPTBOT>'
+        }
+      }
+    );
+
+    const invoiceUrl = response.data.result.pay_url;
+    await bot.sendMessage(chatId, `💸 Aqui está sua fatura para o *${desc}*: [Pagar agora](${invoiceUrl})`, {
+      parse_mode: 'Markdown'
+    });
+
+  } catch (error) {
+    console.error('Erro ao criar invoice:', error.response?.data || error);
+    bot.sendMessage(chatId, '❌ Ocorreu um erro ao gerar sua fatura. Tente novamente.');
+  }
+});
+
+// 🌐 Inicializa servidor web
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('Servidor rodando na porta ' + PORT);
+  console.log('Hello!');
+});
